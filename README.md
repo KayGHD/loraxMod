@@ -253,6 +253,8 @@ loraxMod/
 
 ## Building Grammars
 
+Pre-compiled WASM grammars are included. Only rebuild if you need to update or customize grammars.
+
 ### Prerequisites
 - tree-sitter CLI: `npm install -g tree-sitter-cli@0.25.9`
 - Emscripten SDK (included in `emsdk/`)
@@ -274,6 +276,14 @@ source emsdk/emsdk_env.sh
 # Build all grammars
 bash build/build-grammar.sh
 ```
+
+### Updating Grammars
+
+See [GRAMMAR-VERSIONS.md](GRAMMAR-VERSIONS.md) for:
+- Current grammar versions and sources
+- Update procedures and version pinning
+- Troubleshooting compilation issues
+- Testing and validation steps
 
 ## Sparse Clone Patterns
 

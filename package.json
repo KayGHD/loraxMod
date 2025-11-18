@@ -32,6 +32,8 @@
     "lib/",
     "grammars/",
     "README.md",
+    "GRAMMAR-VERSIONS.md",
+    "SPARSE-CLONE.md",
     "LICENSE"
   ],
   "engines": {
