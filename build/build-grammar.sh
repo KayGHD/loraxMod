@@ -49,14 +49,27 @@ fi
 
 echo "Using emsdk from: $EMSDK_DIR"
 
-# Activate emsdk (on Windows, use PowerShell script instead)
-if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "win32" ]]; then
-    echo "Windows detected - please activate emsdk manually:"
-    echo "  powershell.exe -ExecutionPolicy Bypass -File \"$EMSDK_DIR/emsdk_env.ps1\""
-    echo ""
-    read -p "Press Enter after activating emsdk..."
+# Check if emcc is available (emsdk already activated)
+if command -v emcc &> /dev/null; then
+    echo "✓ emcc found - emsdk already activated"
 else
-    source "$EMSDK_DIR/emsdk_env.sh"
+    echo "Activating emsdk..."
+    if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "win32" ]]; then
+        # On Windows, try to activate via PowerShell
+        echo "Running: powershell.exe -ExecutionPolicy Bypass -File \"$EMSDK_DIR/emsdk_env.ps1\""
+        powershell.exe -ExecutionPolicy Bypass -File "$EMSDK_DIR/emsdk_env.ps1"
+
+        # Check if activation worked
+        if ! command -v emcc &> /dev/null; then
+            echo ""
+            echo "ERROR: emcc not found after activation"
+            echo "Please activate emsdk manually before running this script:"
+            echo "  powershell.exe -ExecutionPolicy Bypass -File C:\\tools\\emsdk\\emsdk_env.ps1"
+            exit 1
+        fi
+    else
+        source "$EMSDK_DIR/emsdk_env.sh"
+    fi
 fi
 
 # Create temp directory
