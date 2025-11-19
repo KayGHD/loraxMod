@@ -91,11 +91,11 @@ powershell.exe -ExecutionPolicy Bypass -File Track-CodeEvolution.ps1 -ClassName 
 
 ### Prerequisites: Install emsdk
 
-emsdk is **not** included in loraxMod. Install it once to `C:\tools\emsdk`:
+emsdk is **not** included in loraxMod. Install it once to a standard location:
 
 **Windows:**
 ```powershell
-# Clone to C:\tools
+# Clone to C:\tools (recommended)
 cd C:\tools
 git clone https://github.com/emscripten-core/emsdk.git
 cd emsdk
@@ -116,6 +116,29 @@ cd emsdk
 ./emsdk install latest
 ./emsdk activate latest
 ```
+
+**Custom Location:**
+
+If you install emsdk to a different directory, set the `EMSDK_ROOT` environment variable:
+
+```powershell
+# Windows PowerShell (permanent)
+[System.Environment]::SetEnvironmentVariable('EMSDK_ROOT', 'D:\dev\tools\emsdk', 'User')
+
+# Windows PowerShell (current session only)
+$env:EMSDK_ROOT = "D:\dev\tools\emsdk"
+```
+
+```bash
+# Linux/macOS (add to ~/.bashrc or ~/.zshrc)
+export EMSDK_ROOT="/opt/emsdk"
+```
+
+The build script automatically detects emsdk in these locations (in order):
+1. `C:\tools\emsdk` (Windows)
+2. `/usr/local/emsdk` (Linux)
+3. `~/emsdk` (user home)
+4. `$EMSDK_ROOT` (environment variable)
 
 ### Automated Update (Recommended)
 

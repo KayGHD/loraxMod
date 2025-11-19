@@ -276,6 +276,9 @@ cd emsdk
 ./emsdk activate latest
 ```
 
+**Custom emsdk location:** Set `EMSDK_ROOT` environment variable to your emsdk path.
+Build script auto-detects: `C:\tools\emsdk`, `/usr/local/emsdk`, `~/emsdk`, or `$EMSDK_ROOT`.
+
 ### Build Grammars
 
 **Windows:**
