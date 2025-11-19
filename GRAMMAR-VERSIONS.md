@@ -15,6 +15,9 @@ Last updated: **November 2025**
 | R          | [r-lib/tree-sitter-r](https://github.com/r-lib/tree-sitter-r) | Latest (main) | 15 | R6, S3, S4 classes |
 | C#         | [tree-sitter/tree-sitter-c-sharp](https://github.com/tree-sitter/tree-sitter-c-sharp) | Latest (main) | 15 | C# 12 features |
 | Rust       | [tree-sitter/tree-sitter-rust](https://github.com/tree-sitter/tree-sitter-rust) | Latest (main) | 15 | Rust 2021 edition |
+| C          | [tree-sitter/tree-sitter-c](https://github.com/tree-sitter/tree-sitter-c) | Latest (main) | 15 | C11/C17 standards |
+| CSS        | [tree-sitter/tree-sitter-css](https://github.com/tree-sitter/tree-sitter-css) | Latest (main) | 15 | CSS3 + preprocessors |
+| Fortran    | [stadelmanma/tree-sitter-fortran](https://github.com/stadelmanma/tree-sitter-fortran) | Latest (main) | 15 | Fortran 90/95/03/08 |
 
 ## Grammar Details
 
@@ -60,6 +63,25 @@ Last updated: **November 2025**
 - **Supports:** Rust 2021 edition, all core language features
 - **WASM Size:** TBD (to be built)
 - **Update Frequency:** Active development by tree-sitter team
+
+### C
+- **Source:** Official tree-sitter grammar
+- **Supports:** C11/C17 standards
+- **WASM Size:** TBD (to be built)
+- **Update Frequency:** Active development, stable grammar
+
+### CSS
+- **Source:** Official tree-sitter grammar
+- **Supports:** CSS3, SCSS, Sass, Less preprocessors
+- **WASM Size:** TBD (to be built)
+- **Update Frequency:** Active development
+
+### Fortran
+- **Source:** Community grammar (stadelmanma)
+- **Supports:** Fortran 90/95/03/08
+- **WASM Size:** TBD (to be built)
+- **Update Frequency:** Community-maintained
+- **Note:** Not official tree-sitter org, but only available Fortran grammar
 
 ## How to Check for Updates
 

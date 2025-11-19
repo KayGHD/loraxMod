@@ -1,12 +1,12 @@
 # loraxMod - Tree-Sitter Parsing Infrastructure
 
-Standalone tree-sitter parsing library extracted from vibe_tools. Provides unified multi-language code parsing with AST analysis for JavaScript, Python, PowerShell, Bash, R, C#, and Rust.
+Standalone tree-sitter parsing library extracted from vibe_tools. Provides unified multi-language code parsing with AST analysis for 10 languages: JavaScript, Python, PowerShell, Bash, R, C#, Rust, C, CSS, and Fortran.
 
 ## Purpose
 
 loraxMod eliminates duplication of tree-sitter infrastructure across projects by providing:
 
-- Single source for grammar WASM files (7 languages)
+- Single source for grammar WASM files (10 languages)
 - Unified parser initialization and language loading
 - Modular language-specific extractors
 - Ancestor-aware AST traversal utilities
@@ -23,6 +23,9 @@ All languages use tree-sitter WASM grammars - no native compilation required.
 - **R** (.r, .R)
 - **C#** (.cs, .csx)
 - **Rust** (.rs)
+- **C** (.c, .h)
+- **CSS** (.css, .scss, .sass, .less)
+- **Fortran** (.f, .f90, .f95, .f03, .f08, .for)
 
 ## Installation
 

@@ -47,7 +47,23 @@ tree-sitter-rust.wasm (TBD)
   Note: Official tree-sitter Rust grammar, Rust 2021 edition
   Build Command: emcc src/parser.c src/scanner.c -o tree-sitter-rust.wasm -I./src -Os -fPIC -s WASM=1 -s SIDE_MODULE=2 -s EXPORTED_FUNCTIONS="['_tree_sitter_rust']"
 
-Total WASM Size: TBD (7 languages)
+tree-sitter-c.wasm (TBD)
+  Source: https://github.com/tree-sitter/tree-sitter-c
+  Language Version: 15
+  Build Command: emcc src/parser.c src/scanner.c -o tree-sitter-c.wasm -I./src -Os -fPIC -s WASM=1 -s SIDE_MODULE=2 -s EXPORTED_FUNCTIONS="['_tree_sitter_c']"
+
+tree-sitter-css.wasm (TBD)
+  Source: https://github.com/tree-sitter/tree-sitter-css
+  Language Version: 15
+  Build Command: emcc src/parser.c src/scanner.c -o tree-sitter-css.wasm -I./src -Os -fPIC -s WASM=1 -s SIDE_MODULE=2 -s EXPORTED_FUNCTIONS="['_tree_sitter_css']"
+
+tree-sitter-fortran.wasm (TBD)
+  Source: https://github.com/stadelmanma/tree-sitter-fortran
+  Language Version: 15
+  Note: Community grammar - only available Fortran grammar
+  Build Command: emcc src/parser.c src/scanner.c -o tree-sitter-fortran.wasm -I./src -Os -fPIC -s WASM=1 -s SIDE_MODULE=2 -s EXPORTED_FUNCTIONS="['_tree_sitter_fortran']"
+
+Total WASM Size: TBD (10 languages)
 
 Build Notes:
 ------------

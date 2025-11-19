@@ -71,6 +71,9 @@ declare -A GRAMMARS=(
     ["r"]="https://github.com/r-lib/tree-sitter-r"
     ["c-sharp"]="https://github.com/tree-sitter/tree-sitter-c-sharp"
     ["rust"]="https://github.com/tree-sitter/tree-sitter-rust"
+    ["c"]="https://github.com/tree-sitter/tree-sitter-c"
+    ["css"]="https://github.com/tree-sitter/tree-sitter-css"
+    ["fortran"]="https://github.com/stadelmanma/tree-sitter-fortran"
 )
 
 # Export function names (most use _tree_sitter_<lang>, powershell uses lowercase)
@@ -82,6 +85,9 @@ declare -A EXPORTS=(
     ["r"]="_tree_sitter_r"
     ["c-sharp"]="_tree_sitter_c_sharp"
     ["rust"]="_tree_sitter_rust"
+    ["c"]="_tree_sitter_c"
+    ["css"]="_tree_sitter_css"
+    ["fortran"]="_tree_sitter_fortran"
 )
 
 # Build each grammar
