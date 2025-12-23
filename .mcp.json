@@ -1,0 +1,23 @@
+{
+  "mcpServers": {
+    "pwsh-repl": {
+      "type": "stdio",
+      "command": "C:\\Users\\jacks\\source\\repos\\pwsh-repl\\release\\v0.1.0\\PowerShellMcpServer.exe",
+      "args": [],
+      "cwd": ".",
+      "env": {
+        "PWSH_MCP_TIMEOUT_DEFAULT": "10",
+        "PWSH_MCP_MODULES": "C:\\Users\\jacks\\source\\repos\\pwsh-repl\\src\\pwsh-repl\\Modules\\"
+      }
+    },
+    "memory-arc": {
+      "type": "stdio",
+      "command": "C:\\Users\\jacks\\anaconda3\\envs\\memory-arc\\Scripts\\fastmcp.exe",
+      "args": [
+        "run",
+        "C:\\Users\\jacks\\source\\repos\\memory-arc-mcp\\src\\memory_arc\\server.py",
+        "--no-banner"
+      ]
+    }
+  }
+}

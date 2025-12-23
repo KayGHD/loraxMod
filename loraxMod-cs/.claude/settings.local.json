@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(wc:*)",
+      "WebSearch",
+      "WebFetch(domain:www.nuget.org)"
+    ]
+  },
+  "enabledMcpjsonServers": [
+    "pwsh-repl",
+    "memory-arc"
+  ]
+}
