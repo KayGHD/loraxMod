@@ -71,35 +71,24 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: powershell-module
-          path: ./powershellMod
+          path: ./LoraxMod
 
-      - name: Debug - List downloaded files
+      - name: Validate module structure
         shell: pwsh
         run: |
-          Write-Host "=== Directory structure ==="
-          Get-ChildItem -Path . -Recurse -Depth 3 | Select-Object FullName
-          Write-Host ""
-          Write-Host "=== powershellMod contents ==="
-          Get-ChildItem -Path ./powershellMod -Recurse | Select-Object FullName, Length
-          Write-Host ""
-          Write-Host "=== Check for psd1 file ==="
-          $psd1 = Get-ChildItem -Path . -Filter "*.psd1" -Recurse
-          Write-Host "Found psd1 files: $($psd1.FullName -join ', ')"
+          Write-Host "=== Module folder contents ==="
+          Get-ChildItem -Path ./LoraxMod -Recurse -Depth 2 | Select-Object FullName
 
-      - name: Validate module manifest
-        shell: pwsh
-        run: |
-          $psd1Path = "./powershellMod/LoraxMod.psd1"
+          $psd1Path = "./LoraxMod/LoraxMod.psd1"
           if (-not (Test-Path $psd1Path)) {
             throw "Module manifest not found at: $psd1Path"
           }
-          $dllPath = "./powershellMod/bin/LoraxMod.dll"
+          $dllPath = "./LoraxMod/bin/LoraxMod.dll"
           if (-not (Test-Path $dllPath)) {
             throw "RootModule DLL not found at: $dllPath"
           }
           $manifest = Test-ModuleManifest -Path $psd1Path
           Write-Host "Module: $($manifest.Name) v$($manifest.Version)"
-          Write-Host "Description: $($manifest.Description)"
           Write-Host "RootModule: $($manifest.RootModule)"
 
       - name: Publish to PowerShell Gallery
@@ -107,6 +96,6 @@ jobs:
         env:
           POWERSHELL_GALLERY_KEY: ${{ secrets.POWERSHELL_GALLERY }}
         run: |
-          $modulePath = Resolve-Path "./powershellMod"
+          $modulePath = Resolve-Path "./LoraxMod"
           Write-Host "Publishing from: $modulePath"
           Publish-Module -Path $modulePath -NuGetApiKey $env:POWERSHELL_GALLERY_KEY -Verbose
