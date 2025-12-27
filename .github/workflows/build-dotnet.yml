@@ -16,13 +16,10 @@ on:
 
 jobs:
   test:
-    name: Test on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-        # Note: macOS excluded - TreeSitter.DotNet has limited macOS support
+    name: Test on Windows
+    runs-on: windows-latest
+    # Note: TreeSitter.DotNet only has Windows native DLLs (win-x64)
+    # Linux/macOS would fail with "type initializer threw exception"
 
     steps:
       - uses: actions/checkout@v4
@@ -44,8 +41,7 @@ jobs:
         working-directory: loraxMod-cs
         run: dotnet test tests/LoraxMod.Tests.csproj --configuration Release --filter "Category!=Integration" --verbosity normal
 
-      - name: Run integration tests (Windows only)
-        if: matrix.os == 'windows-latest'
+      - name: Run integration tests
         working-directory: loraxMod-cs
         run: dotnet test tests/LoraxMod.Tests.csproj --configuration Release --verbosity normal
 
