@@ -1,363 +1,203 @@
-# loraxMod - Tree-Sitter Parsing Infrastructure
+# LoraxMod
 
-Standalone tree-sitter parsing library extracted from vibe_tools. Provides unified multi-language code parsing with AST analysis for 10 languages: JavaScript, Python, PowerShell, Bash, R, C#, Rust, C, CSS, and Fortran.
+[![Python CI](https://github.com/jackyHardDisk/loraxMod/actions/workflows/build-wheels.yml/badge.svg)](https://github.com/jackyHardDisk/loraxMod/actions/workflows/build-wheels.yml)
+[![.NET CI](https://github.com/jackyHardDisk/loraxMod/actions/workflows/build-dotnet.yml/badge.svg)](https://github.com/jackyHardDisk/loraxMod/actions/workflows/build-dotnet.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## Purpose
+Schema-driven AST parsing library. Uses tree-sitter grammars as source of truth for extracting code structure.
 
-loraxMod eliminates duplication of tree-sitter infrastructure across projects by providing:
+## Core Idea
 
-- Single source for grammar WASM files (10 languages)
-- Unified parser initialization and language loading
-- Modular language-specific extractors
-- Ancestor-aware AST traversal utilities
-- Extraction context filtering
+Instead of hardcoding extraction rules, read `node-types.json` schemas dynamically. Grammars document their own structure.
 
-## Supported Languages
+## Bindings
 
-All languages use tree-sitter WASM grammars - no native compilation required.
+| Binding | Runtime | Languages | Status |
+|---------|---------|-----------|--------|
+| **loraxMod-py** | tree-sitter-language-pack | 170 | Complete |
+| **loraxMod-cs** | TreeSitter.DotNet (native) | 28 | Complete |
+| **loraxMod-js** | tree-sitter-web (WASM) | 12 | Planned |
 
-- **JavaScript/TypeScript** (.js, .jsx, .ts, .tsx, .mjs, .cjs)
-- **Python** (.py)
-- **PowerShell** (.ps1, .psm1, .psd1)
-- **Bash** (.sh, .bash)
-- **R** (.r, .R)
-- **C#** (.cs, .csx)
-- **Rust** (.rs)
-- **C** (.c, .h)
-- **CSS** (.css, .scss, .sass, .less)
-- **Fortran** (.f, .f90, .f95, .f03, .f08, .for)
+## Quick Start (Python)
 
-## Installation
-
-### Method 1: Direct Path (Development)
 ```bash
-# Place loraxMod adjacent to your project
-cd ../loraxMod
-npm install  # Installs only web-tree-sitter (~5.7 MB)
-
-# Your project automatically finds it via relative path
+pip install loraxmod
 ```
 
-### Method 2: npm link (Recommended)
-```bash
-cd loraxMod
-npm install  # Single dependency: web-tree-sitter
-npm link
+```python
+from loraxmod import Parser
 
-cd ../your-project
-npm link loraxmod
+# Works for any of 170 languages
+parser = Parser("javascript")
+tree = parser.parse("function greet(name) { return name; }")
+
+# S-expression output
+str(tree.root_node)  # '(source_file (function_declaration name: (identifier) ...))'
+
+# Extract functions
+functions = parser.extract_by_type(tree, ["function_declaration"])
+print(functions[0].identity)  # 'greet'
+
+# Semantic diff
+diff = parser.diff(old_code, new_code)
+for change in diff.changes:
+    print(change.change_type.value, change.old_identity, change.new_identity)
 ```
 
-### Method 3: Git Submodule
-```bash
-cd your-project
-git submodule add https://github.com/yourusername/loraxMod.git lib/loraxMod
-git submodule update --init --recursive
+## Quick Start (C#/PowerShell)
+
+```powershell
+# Import PowerShell module
+Import-Module loraxMod
+
+# Parse JavaScript code
+$code = 'function greet(name) { return name; }'
+$ast = $code | ConvertTo-LoraxAST -Language javascript
+
+# Extract functions
+Find-LoraxFunction -Code $code -Language javascript
+
+# Semantic diff
+$diff = Compare-LoraxAST -OldCode $old -NewCode $new -Language javascript
+
+# Session-based batch processing (faster)
+Start-LoraxParserSession -SessionId js -Language javascript
+Get-ChildItem *.js | Invoke-LoraxParse -SessionId js
+Stop-LoraxParserSession -SessionId js -ShowStats
 ```
 
-### Method 4: Sparse Clone (Grammar Only - for PowerShell callers)
-```bash
-git clone --no-checkout https://github.com/yourusername/loraxMod.git
-cd loraxMod
-git sparse-checkout init --cone
-git sparse-checkout set grammars
-git checkout main
-```
+```csharp
+// C# API
+using LoraxMod;
 
-## Usage
+var parser = await Parser.CreateAsync("javascript");
+var tree = parser.Parse("function greet(name) { return name; }");
 
-### Basic Parsing
+// Extract all with recursion
+var result = parser.ExtractAll(tree, recurse: true);
+Console.WriteLine(result.NodeType);  // "program"
 
-```javascript
-const { parseCode } = require('loraxmod');
+// Extract specific node types
+var functions = parser.ExtractByType(tree, new[] { "function_declaration" });
+Console.WriteLine(functions[0].Identity);  // "greet"
 
-const code = `
-class MyClass {
-  myMethod() {
-    console.log("Hello");
-  }
+// Semantic diff
+var diff = parser.Diff(oldCode, newCode);
+foreach (var change in diff.Changes)
+{
+    Console.WriteLine($"{change.ChangeType}: {change.Path}");
 }
-`;
-
-const segments = await parseCode(code, 'example.js');
-console.log(segments);
-// [
-//   { type: 'class', name: 'MyClass', startLine: 1, endLine: 5, ... },
-//   { type: 'method', name: 'MyClass.myMethod', startLine: 2, endLine: 4, ... }
-// ]
 ```
 
-### With Extraction Context
+## How It Works
 
-```javascript
-const { parseCode } = require('loraxmod');
+**Parsers:** tree-sitter-language-pack (pre-built for 170 languages)
 
-const extractionContext = {
-  Elements: ['class', 'method'],  // Only extract classes and methods
-  Exclusions: ['constant'],        // Exclude constants
-  PreserveContext: true,           // Preserve parent class in method names
-  Filters: {
-    ClassName: 'MyClass'           // Only extract MyClass
-  }
-};
+**Schemas:** Fetched from GitHub tree-sitter repos, cached in `~/.cache/loraxmod/`
 
-const segments = await parseCode(code, 'example.js', extractionContext);
+```python
+from loraxmod import get_available_languages
+get_available_languages()  # ['actionscript', 'ada', ..., 'zig']
 ```
 
-### Low-Level API
+## Structure
 
-```javascript
-const {
-  initParser,
-  loadLanguage,
-  getParser,
-  detectLanguage,
-  getExtractorClass
-} = require('loraxmod');
-
-// Initialize parser
-await initParser();
-
-// Load language
-const language = detectLanguage('example.py');
-const langObj = await loadLanguage(language);
-
-// Parse with tree-sitter directly
-const parser = getParser();
-parser.setLanguage(langObj);
-const tree = parser.parse(code);
-
-// Use extractor
-const ExtractorClass = getExtractorClass(language);
-const extractor = new ExtractorClass();
-const segments = extractor.extract(tree, extractionContext);
 ```
+grammars/
+  tree-sitter-*/        Grammar sources (git repos, 12 languages)
+    src/
+      node-types.json   Schema (source of truth)
+      parser.c          Generated parser
+  compiled/             WASM builds (for JS binding)
 
-### AST Traversal Utilities
+loraxMod-py/            Python binding (170 languages via language-pack)
+  loraxmod/
+    schema.py           SchemaReader (portable)
+    extractor.py        SchemaExtractor (portable)
+    differ.py           TreeDiffer (portable)
+    parser.py           Parser wrapper
+    schema_cache.py     GitHub schema fetching
 
-```javascript
-const { traverseWithAncestors, findAncestor, getParentClassName } = require('loraxmod');
+loraxMod-cs/            C# binding (28 languages via TreeSitter.DotNet)
+  src/
+    Schema.cs           SchemaReader (portable)
+    Extractor.cs        SchemaExtractor (portable)
+    Differ.cs           TreeDiffer (portable)
+    Parser.cs           Parser wrapper
+    SchemaCache.cs      GitHub schema fetching
+    Cmdlets/            PowerShell cmdlets (10 cmdlets)
+  tests/                xUnit test suite (39 tests, 29 passing)
 
-traverseWithAncestors(rootNode, [], (node, ancestors) => {
-  // Process node with full ancestor context
-  const parentClass = findAncestor(ancestors, 'class_declaration');
-  const className = getParentClassName(ancestors, 'javascript');
-});
+loraxMod-js/            JavaScript binding (planned)
+
+powershellMod/          PowerShell module manifest
+  LoraxMod.psd1         Module definition (v1.0.1)
+  bin/                  Published DLL + dependencies
+
+scripts/                Build and analysis tools
+deprecated/             Archived pattern-based code
 ```
-
-## API Reference
-
-### High-Level API
-
-#### `parseCode(code, filePath, extractionContext?, languageConfig?)`
-Parse code and extract structured segments.
-
-**Parameters:**
-- `code` (string): Source code to parse
-- `filePath` (string): File path for language detection
-- `extractionContext` (Object, optional): Filtering context
-  - `Elements` (Array): Types to include (class, function, method, etc.)
-  - `Exclusions` (Array): Types to exclude
-  - `PreserveContext` (boolean): Preserve parent class in method names
-  - `ScopeFilter` (string): 'top-level' to exclude nested items
-  - `Filters` (Object): Name-based filters
-    - `ClassName` (string): Filter by class name
-    - `FunctionName` (string): Filter by function/method name
-    - `Extends` (string): Filter by parent class
-- `languageConfig` (Object, optional): Configuration
-  - `grammarDir` (string): Custom grammar directory path
-
-**Returns:** `Promise<Array>` - Array of segments with:
-- `type`: Segment type (class, function, method, constant, etc.)
-- `name`: Segment name
-- `startLine`: Start line number (0-indexed)
-- `endLine`: End line number (0-indexed)
-- `content`: Full segment code
-- `parent`: Parent class name (for methods)
-- `extends`: Superclass name (for classes)
-- `lineCount`: Number of lines
-
-### Core Functions
-
-#### `initParser()`
-Initialize tree-sitter parser. Call once before parsing.
-
-**Returns:** `Promise<TreeSitter.Parser>`
-
-#### `loadLanguage(language, grammarDir?)`
-Load language grammar WASM file.
-
-**Parameters:**
-- `language` (string): Language identifier
-- `grammarDir` (string, optional): Custom grammar directory
-
-**Returns:** `Promise<TreeSitter.Language|null>`
-
-#### `detectLanguage(filePath)`
-Detect language from file extension.
-
-**Returns:** `string` - Language identifier or 'unknown'
-
-#### `getSupportedLanguages()`
-Get list of supported languages.
-
-**Returns:** `Array<string>`
-
-### Traversal Utilities
-
-#### `traverseWithAncestors(node, ancestors, visitor)`
-Traverse AST with ancestor tracking.
-
-**Parameters:**
-- `node` (TreeSitter.SyntaxNode): Current node
-- `ancestors` (Array): Ancestor nodes
-- `visitor` (Function): Callback `(node, ancestors) => {}`
-
-#### `findAncestor(ancestors, types)`
-Find first ancestor of specific type(s).
-
-**Parameters:**
-- `ancestors` (Array): Ancestor nodes
-- `types` (string|Array): Node type(s) to find
-
-**Returns:** `TreeSitter.SyntaxNode|null`
-
-#### `isTopLevel(ancestors, language)`
-Check if node is at module/file top level.
-
-**Returns:** `boolean`
-
-#### `getParentClassName(ancestors, language)`
-Get parent class name from ancestors.
-
-**Returns:** `string|null`
 
 ## Architecture
 
-### Directory Structure
+**Portable modules** (no tree-sitter deps, translated across Python/C#):
+- Schema reader - JSON schema parsing, semantic intent resolution
+- Extractor - Schema-driven field extraction with recursion
+- Differ - Semantic diff with rename/move/reorder detection
+
+**Runtime-specific**:
+- **Python**: py-tree-sitter wrapper, language-pack integration
+- **C#**: TreeSitter.DotNet wrapper, PowerShell cmdlets
+
+**Implementation consistency**:
+```python
+# Python
+schema = SchemaReader.from_file("node-types.json")
+schema.resolve_intent("function_declaration", "identifier")  # "name"
 ```
-loraxMod/
-├── grammars/               # WASM grammar files
-├── lib/
-│   ├── core/              # Parser, language detection, traversal
-│   ├── extractors/        # Language-specific extractors
-│   ├── filters/           # Extraction context filtering
-│   └── index.js           # Main export
-├── build/                 # Build scripts for grammars
-└── emsdk/                # Emscripten SDK (excluded from npm)
+
+```csharp
+// C# (same API)
+var schema = SchemaReader.FromFile("node-types.json");
+schema.ResolveIntent("function_declaration", "identifier");  // "name"
 ```
 
-### Design Principles
+## Use Cases
 
-1. **Single Responsibility**: Core parsing only, no Git or reporting logic
-2. **Composition**: Modular extractors registered via plugin pattern
-3. **Backward Compatible**: Drop-in replacement for existing parsers
-4. **Sparse Clone Friendly**: Minimal dependencies for grammar-only usage
-5. **Zero Native Dependencies**: Pure WASM - no compilation, cross-platform
+- **Version control**: Semantic diff for intelligent code history
+- **Refactor analysis**: Find similar code patterns via embeddings
+- **PowerShell MCP**: AST queries via pwsh_repl
+- **Browser extensions**: In-browser code analysis
 
-## Building Grammars
+## Future Vision
 
-Pre-compiled WASM grammars are included. Only rebuild if you need to update or customize grammars.
+**Hybrid Semantic Diff + Code Embeddings**: Combine loraxMod semantic diff (precise, structured) with code embeddings like jina-embeddings-v3 (fuzzy, cross-file) for intelligent version control.
 
-### Prerequisites
-- tree-sitter CLI: `npm install -g tree-sitter-cli@0.25.9`
-- Emscripten SDK: Install to `C:\tools\emsdk` (Windows) or `/usr/local/emsdk` (Linux)
+**Use cases**: Refactor impact analysis, smart merge conflicts, cross-language consistency, "explain this diff" to LLMs.
 
-**Install emsdk (one-time setup):**
+See CLAUDE.md for detailed roadmap.
+
+## Installation
+
+**Python** (170 languages):
 ```bash
-# Windows
-cd C:\tools
-git clone https://github.com/emscripten-core/emsdk.git
-cd emsdk
-emsdk install latest
-emsdk activate latest
-
-# Linux/macOS
-cd /usr/local  # or ~/
-git clone https://github.com/emscripten-core/emsdk.git
-cd emsdk
-./emsdk install latest
-./emsdk activate latest
+pip install loraxmod
 ```
 
-**Custom emsdk location:** Set `EMSDK_ROOT` environment variable to your emsdk path.
-Build script auto-detects: `C:\tools\emsdk`, `/usr/local/emsdk`, `~/emsdk`, or `$EMSDK_ROOT`.
-
-### Build Grammars
-
-**Windows:**
+**C#/.NET** (28 languages):
 ```bash
-# Activate emsdk
-powershell.exe -ExecutionPolicy Bypass -File C:\tools\emsdk\emsdk_env.ps1
-
-# Build all grammars
-bash build/build-grammar.sh
+dotnet add package LoraxMod
 ```
 
-**Linux/macOS:**
-```bash
-# Activate emsdk
-source /usr/local/emsdk/emsdk_env.sh
-
-# Build all grammars
-bash build/build-grammar.sh
+**PowerShell Module**:
+```powershell
+# Clone and import
+git clone https://github.com/jackyHardDisk/loraxMod
+Import-Module ./loraxMod/powershellMod/LoraxMod.psd1
 ```
-
-### Updating Grammars
-
-See [GRAMMAR-VERSIONS.md](GRAMMAR-VERSIONS.md) for:
-- Current grammar versions and sources
-- Update procedures and version pinning
-- Troubleshooting compilation issues
-- Testing and validation steps
-
-## Sparse Clone Patterns
-
-For projects that only need grammars (e.g., PowerShell callers):
-
-```bash
-# Clone with sparse checkout
-git clone --no-checkout https://github.com/yourusername/loraxMod.git
-cd loraxMod
-git sparse-checkout init --cone
-
-# Pattern 1: Grammars only (minimal)
-git sparse-checkout set grammars
-git checkout main
-
-# Pattern 2: Grammars + runtime lib
-git sparse-checkout set grammars lib
-git checkout main
-
-# Pattern 3: Everything (full clone)
-git sparse-checkout disable
-git checkout main
-```
-
-## Migration from vibe_tools
-
-If migrating from vibe_tools code_evolver or code_referencer:
-
-1. Install loraxMod adjacent to vibe_tools: `../loraxMod`
-2. Run `npm install` in loraxMod
-3. Your tools will automatically find loraxMod via relative path
-4. Original wrapper parsers now delegate to loraxMod
-
-## Contributing
-
-### Adding New Languages
-
-1. Add grammar WASM file to `grammars/`
-2. Update `lib/core/language-map.js` with file extension mapping
-3. Create extractor in `lib/extractors/<language>.js`
-4. Register extractor in `lib/index.js`
-5. Update build script in `build/build-grammar.sh`
 
 ## License
 
-ISC
+MIT License - See [LICENSE](LICENSE)
 
-## Credits
-
-Extracted from vibe_tools project (code_evolver and code_referencer).
-Built with web-tree-sitter WASM for cross-platform compatibility.
+Third-party attributions: [THIRD-PARTY-LICENSES.md](THIRD-PARTY-LICENSES.md)
