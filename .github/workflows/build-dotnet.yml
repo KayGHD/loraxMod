@@ -41,13 +41,13 @@ jobs:
         run: dotnet build --no-restore --configuration Release
 
       - name: Run unit tests
-        working-directory: loraxMod-cs/tests
-        run: dotnet test --no-build --configuration Release --filter "Category!=Integration" --verbosity normal
+        working-directory: loraxMod-cs
+        run: dotnet test tests/LoraxMod.Tests.csproj --no-build --configuration Release --filter "Category!=Integration" --verbosity normal
 
       - name: Run integration tests (Windows only)
         if: matrix.os == 'windows-latest'
-        working-directory: loraxMod-cs/tests
-        run: dotnet test --no-build --configuration Release --verbosity normal
+        working-directory: loraxMod-cs
+        run: dotnet test tests/LoraxMod.Tests.csproj --no-build --configuration Release --verbosity normal
 
   build:
     name: Build NuGet package
