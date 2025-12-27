@@ -1,0 +1,88 @@
+name: Build and Publish PowerShell Module
+
+on:
+  push:
+    tags:
+      - 'ps-v*'
+    branches:
+      - master
+    paths:
+      - 'loraxMod-cs/**'
+      - 'powershellMod/**'
+      - '.github/workflows/build-powershell.yml'
+  pull_request:
+    paths:
+      - 'loraxMod-cs/**'
+      - 'powershellMod/**'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build and Test
+    runs-on: windows-latest
+    # TreeSitter.DotNet only has Windows native DLLs
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        working-directory: loraxMod-cs
+        run: dotnet restore
+
+      - name: Build Release
+        working-directory: loraxMod-cs
+        run: dotnet build --configuration Release
+
+      - name: Run tests
+        working-directory: loraxMod-cs
+        run: dotnet test tests/LoraxMod.Tests.csproj --configuration Release --verbosity normal
+
+      - name: Publish to powershellMod/bin
+        working-directory: loraxMod-cs
+        run: dotnet publish --configuration Release --output ../powershellMod/bin
+
+      - name: Test module import
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Import-Module ./powershellMod/LoraxMod.psd1 -Verbose
+          $cmds = Get-Command -Module LoraxMod
+          Write-Host "Loaded $($cmds.Count) commands from LoraxMod"
+          if ($cmds.Count -lt 10) { throw "Expected at least 10 cmdlets" }
+
+      - name: Upload module artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: powershell-module
+          path: powershellMod/
+
+  publish:
+    name: Publish to PowerShell Gallery
+    needs: build
+    runs-on: windows-latest
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/ps-v')
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: powershell-module
+          path: ./powershellMod
+
+      - name: Validate module manifest
+        shell: pwsh
+        run: |
+          $manifest = Test-ModuleManifest -Path ./powershellMod/LoraxMod.psd1
+          Write-Host "Module: $($manifest.Name) v$($manifest.Version)"
+          Write-Host "Description: $($manifest.Description)"
+
+      - name: Publish to PowerShell Gallery
+        shell: pwsh
+        env:
+          POWERSHELL_GALLERY_KEY: ${{ secrets.POWERSHELL_GALLERY }}
+        run: |
+          Publish-Module -Path ./powershellMod -NuGetApiKey $env:POWERSHELL_GALLERY_KEY -Verbose
