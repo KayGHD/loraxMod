@@ -1,0 +1,101 @@
+name: Build and Test .NET Package
+
+on:
+  push:
+    tags:
+      - 'cs-v*'
+    branches:
+      - master
+    paths:
+      - 'loraxMod-cs/**'
+      - '.github/workflows/build-dotnet.yml'
+  pull_request:
+    paths:
+      - 'loraxMod-cs/**'
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Test on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        # Note: macOS excluded - TreeSitter.DotNet has limited macOS support
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        working-directory: loraxMod-cs
+        run: dotnet restore
+
+      - name: Build
+        working-directory: loraxMod-cs
+        run: dotnet build --no-restore --configuration Release
+
+      - name: Run unit tests
+        working-directory: loraxMod-cs/tests
+        run: dotnet test --no-build --configuration Release --filter "Category!=Integration" --verbosity normal
+
+      - name: Run integration tests (Windows only)
+        if: matrix.os == 'windows-latest'
+        working-directory: loraxMod-cs/tests
+        run: dotnet test --no-build --configuration Release --verbosity normal
+
+  build:
+    name: Build NuGet package
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        working-directory: loraxMod-cs
+        run: dotnet restore
+
+      - name: Build Release
+        working-directory: loraxMod-cs
+        run: dotnet build --configuration Release
+
+      - name: Pack NuGet package
+        working-directory: loraxMod-cs
+        run: dotnet pack --configuration Release --no-build --output ./nupkg
+
+      - name: Upload NuGet package
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-package
+          path: loraxMod-cs/nupkg/*.nupkg
+
+  publish:
+    name: Publish to NuGet
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/cs-v')
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: nuget-package
+          path: ./nupkg
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Publish to NuGet
+        run: dotnet nuget push ./nupkg/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate

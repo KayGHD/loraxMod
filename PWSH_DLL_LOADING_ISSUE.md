@@ -42,7 +42,7 @@ PS> Get-Module LoraxMod | Select Name, Version, ModuleType, Path
 Name      : LoraxMod
 Version   : 1.0.0
 ModuleType: Binary
-Path      : C:\Users\jacks\experiments\WebStormProjects\loraxMod\powershellMod\bin\LoraxMod.dll
+Path      : C:\path\to\loraxMod\powershellMod\bin\LoraxMod.dll
 ```
 
 **DLL Structure:**
@@ -326,7 +326,7 @@ These work but are deprecated.
 ### 1. Module loads without errors
 
 ```powershell
-Import-Module C:\Users\jacks\experiments\WebStormProjects\loraxMod\powershellMod\LoraxMod.psd1
+Import-Module C:\path\to\loraxMod\powershellMod\LoraxMod.psd1
 Get-Module LoraxMod  # Should show Version 1.0.0
 ```
 

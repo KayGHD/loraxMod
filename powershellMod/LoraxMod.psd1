@@ -1,9 +1,9 @@
 @{
     ModuleVersion = '1.0.1'
     GUID = '8a3f7d92-4e1c-4b5a-9f2e-6d8c1a3b7f4e'
-    Author = 'Jackson Hunter'
-    CompanyName = 'Unknown'
-    Copyright = '(c) 2025. All rights reserved.'
+    Author = 'jackyHardDisk'
+    CompanyName = 'jackyHardDisk'
+    Copyright = '(c) 2025 jackyHardDisk. MIT License.'
     Description = 'Tree-sitter AST parsing and analysis via PowerShell. Native C# implementation with schema-driven extraction. Supports 28+ languages.'
 
     RootModule = 'bin\LoraxMod.dll'
@@ -34,8 +34,8 @@
     PrivateData = @{
         PSData = @{
             Tags = @('tree-sitter', 'AST', 'parsing', 'code-analysis', 'static-analysis')
-            LicenseUri = 'https://github.com/jacksonhunter/loraxmod'
-            ProjectUri = 'https://github.com/jacksonhunter/loraxmod'
+            LicenseUri = 'https://github.com/jackyHardDisk/loraxMod/blob/master/LICENSE'
+            ProjectUri = 'https://github.com/jackyHardDisk/loraxMod'
             ReleaseNotes = @'
 ## v1.0.1 - DLL Loading Fix
 

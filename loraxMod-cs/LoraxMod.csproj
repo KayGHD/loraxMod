@@ -6,7 +6,30 @@
     <Nullable>enable</Nullable>
     <RootNamespace>LoraxMod</RootNamespace>
     <AssemblyName>LoraxMod</AssemblyName>
+
+    <!-- NuGet Package Metadata -->
+    <PackageId>LoraxMod</PackageId>
+    <Version>1.0.1</Version>
+    <Authors>jackyHardDisk</Authors>
+    <Company>jackyHardDisk</Company>
+    <Description>Schema-driven AST parsing and semantic diff for 28+ languages. Uses TreeSitter.DotNet for native parsing, reads node-types.json schemas dynamically. Includes PowerShell cmdlets for batch processing.</Description>
+    <PackageTags>tree-sitter;ast;parser;semantic-diff;code-analysis;powershell</PackageTags>
+    <PackageProjectUrl>https://github.com/jackyHardDisk/loraxMod</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/jackyHardDisk/loraxMod</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <Copyright>Copyright (c) 2025 jackyHardDisk</Copyright>
+
+    <!-- Generate documentation XML -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md" Pack="true" PackagePath="\" Condition="Exists('..\README.md')" />
+    <None Include="README.md" Pack="true" PackagePath="\" Condition="Exists('README.md')" />
+  </ItemGroup>
 
   <ItemGroup>
     <!-- TreeSitter.DotNet for native tree-sitter bindings -->

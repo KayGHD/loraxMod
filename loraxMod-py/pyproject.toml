@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "loraxmod"
+version = "0.1.0"
+description = "Schema-driven AST parsing and semantic diff for 170+ languages"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+authors = [
+    {name = "jackyHardDisk"}
+]
+keywords = ["tree-sitter", "ast", "parser", "semantic-diff", "code-analysis"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Compilers",
+    "Topic :: Software Development :: Code Generators",
+]
+dependencies = [
+    "tree-sitter>=0.25.0",
+    "tree-sitter-language-pack>=0.13.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/jackyHardDisk/loraxMod"
+Repository = "https://github.com/jackyHardDisk/loraxMod"
+Documentation = "https://github.com/jackyHardDisk/loraxMod/tree/master/loraxMod-py"
+"Bug Tracker" = "https://github.com/jackyHardDisk/loraxMod/issues"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.setuptools.packages.find]
+where = ["."]
+
+[tool.setuptools.package-data]
+loraxmod = [
+    "_schemas/*.json",
+]

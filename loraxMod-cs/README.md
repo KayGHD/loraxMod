@@ -251,4 +251,6 @@ dotnet test                                    # All tests
 
 ## License
 
-See parent repository and individual grammar licenses.
+MIT License - See [LICENSE](https://github.com/jackyHardDisk/loraxMod/blob/master/LICENSE)
+
+Third-party licenses: [THIRD-PARTY-LICENSES.md](https://github.com/jackyHardDisk/loraxMod/blob/master/THIRD-PARTY-LICENSES.md)

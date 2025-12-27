@@ -4,6 +4,7 @@ package-lock.json
 
 # Build artifacts
 build/temp/
+build/grammars
 
 # Build toolchain (install to C:\tools\emsdk or ~/emsdk instead)
 emsdk/
@@ -15,6 +16,7 @@ Thumbs.db
 # IDE
 .vscode/
 .idea/
+.claude/
 *.swp
 *.swo
 
@@ -25,3 +27,38 @@ test/
 # Logs
 *.log
 npm-debug.log*
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+.eggs/
+
+# loraxmod schema cache (downloaded from GitHub)
+.cache/
+
+# Local development notes (may contain personal paths)
+.gary/
+
+# Local MCP config (contains personal paths)
+.mcp.json
+
+# Test output with local paths
+data/validation-report.json
+
+# Deprecated code (contains personal paths in notes)
+deprecated/
+
+# pytest cache
+.pytest_cache/
+
+# C# build artifacts
+loraxMod-cs/**/bin/
+loraxMod-cs/**/obj/
+*.dll
+*.pdb
+*.nupkg
+
+# Keep powershellMod/bin/ (published module)
+!powershellMod/bin/
