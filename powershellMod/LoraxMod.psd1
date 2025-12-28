@@ -1,5 +1,5 @@
 @{
-    ModuleVersion = '1.0.1'
+    ModuleVersion = '1.0.2'
     GUID = '8a3f7d92-4e1c-4b5a-9f2e-6d8c1a3b7f4e'
     Author = 'jackyHardDisk'
     CompanyName = 'jackyHardDisk'
@@ -37,6 +37,12 @@
             LicenseUri = 'https://github.com/jackyHardDisk/loraxMod/blob/master/LICENSE'
             ProjectUri = 'https://github.com/jackyHardDisk/loraxMod'
             ReleaseNotes = @'
+## v1.0.2 - License Compliance
+
+Additions:
+- Added THIRD_PARTY_NOTICES.txt with MIT license attributions
+- TreeSitter.DotNet and all tree-sitter grammars properly attributed
+
 ## v1.0.1 - DLL Loading Fix
 
 Fixes:
