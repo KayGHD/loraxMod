@@ -120,8 +120,14 @@ namespace LoraxMod
             else
             {
                 // Try bundled schemas first (most reliable, no network needed)
-                // Assembly is in powershellMod/bin/, schemas are in ../schemas/
+                // Check two layouts:
+                // 1. powershellMod layout: bin/LoraxMod.dll + ../schemas/
+                // 2. flat layout (pwsh-repl): LoraxMod.dll + schemas/
                 var bundledPath = Path.Combine(assemblyDir, "..", "schemas", $"{language}.json");
+                if (!File.Exists(bundledPath))
+                {
+                    bundledPath = Path.Combine(assemblyDir, "schemas", $"{language}.json");
+                }
                 if (File.Exists(bundledPath))
                 {
                     schema = SchemaReader.FromFile(bundledPath);

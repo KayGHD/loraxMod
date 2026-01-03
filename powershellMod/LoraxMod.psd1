@@ -1,5 +1,5 @@
 @{
-    ModuleVersion = '1.0.3'
+    ModuleVersion = '1.0.4'
     GUID = '8a3f7d92-4e1c-4b5a-9f2e-6d8c1a3b7f4e'
     Author = 'jackyHardDisk'
     CompanyName = 'jackyHardDisk'
@@ -37,6 +37,12 @@
             LicenseUri = 'https://github.com/jackyHardDisk/loraxMod/blob/master/LICENSE'
             ProjectUri = 'https://github.com/jackyHardDisk/loraxMod'
             ReleaseNotes = @'
+## v1.0.4 - Schema Path Fix
+
+Fixes:
+- Support both powershellMod layout (bin/../schemas/) and flat layout (schemas/)
+- Fixes C# parsing in pwsh-repl and other flat deployments
+
 ## v1.0.3 - Bundled Schemas
 
 Fixes:

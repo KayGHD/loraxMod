@@ -9,7 +9,7 @@
 
     <!-- NuGet Package Metadata -->
     <PackageId>LoraxMod</PackageId>
-    <Version>1.0.3</Version>
+    <Version>1.0.4</Version>
     <Authors>jackyHardDisk</Authors>
     <Company>jackyHardDisk</Company>
     <Description>Schema-driven AST parsing and semantic diff for 28+ languages. Uses TreeSitter.DotNet for native parsing, reads node-types.json schemas dynamically. Includes PowerShell cmdlets for batch processing.</Description>
