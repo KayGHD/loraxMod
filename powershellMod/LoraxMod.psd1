@@ -1,5 +1,5 @@
 @{
-    ModuleVersion = '1.0.5'
+    ModuleVersion = '1.0.6'
     GUID = '8a3f7d92-4e1c-4b5a-9f2e-6d8c1a3b7f4e'
     Author = 'jackyHardDisk'
     CompanyName = 'jackyHardDisk'
@@ -37,6 +37,19 @@
             LicenseUri = 'https://github.com/jackyHardDisk/loraxMod/blob/master/LICENSE'
             ProjectUri = 'https://github.com/jackyHardDisk/loraxMod'
             ReleaseNotes = @'
+## v1.0.6 - Embedded Schemas in DLL
+
+Changes:
+- Schemas now embedded directly in LoraxMod.dll as resources
+- Eliminates external file path dependencies for schema loading
+- Schema lookup: embedded resource -> SchemaCache -> local grammars
+- Removed Content/ContentWithTargetPath schema bundling (replaced by EmbeddedResource)
+
+Technical Details:
+- Resource names: LoraxMod.schemas.{language}.json
+- Uses Assembly.GetManifestResourceStream for loading
+- SchemaReader.FromJson already existed, now primary path for embedded schemas
+
 ## v1.0.5 - Bundle Schemas in NuGet
 
 Fixes:

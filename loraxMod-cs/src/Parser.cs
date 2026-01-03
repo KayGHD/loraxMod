@@ -81,6 +81,26 @@ namespace LoraxMod
         };
 
         /// <summary>
+        /// Load schema from embedded resource in the DLL.
+        /// Resource names follow pattern: LoraxMod.schemas.{language}.json
+        /// </summary>
+        /// <param name="language">Language name (e.g., 'javascript', 'python')</param>
+        /// <returns>SchemaReader if found, null otherwise</returns>
+        private static SchemaReader? LoadEmbeddedSchema(string language)
+        {
+            var assembly = typeof(Parser).Assembly;
+            var resourceName = $"LoraxMod.schemas.{language}.json";
+
+            using var stream = assembly.GetManifestResourceStream(resourceName);
+            if (stream == null)
+                return null;
+
+            using var reader = new StreamReader(stream);
+            var json = reader.ReadToEnd();
+            return SchemaReader.FromJson(json);
+        }
+
+        /// <summary>
         /// Create a parser for a language (async factory).
         /// </summary>
         /// <param name="language">Language name (e.g., 'javascript', 'python', 'csharp')</param>
@@ -107,7 +127,7 @@ namespace LoraxMod
 
             // Load schema with fallback chain:
             // 1. Explicit path (if provided)
-            // 2. Bundled schemas in ../schemas/ (relative to assembly)
+            // 2. Embedded resource in DLL (most reliable, no external files)
             // 3. SchemaCache (fetches from GitHub)
             // 4. Local grammars in ../../grammars/ (dev environment)
             SchemaReader? schema = null;
@@ -119,18 +139,13 @@ namespace LoraxMod
             }
             else
             {
-                // Try bundled schemas first (most reliable, no network needed)
-                // Check two layouts:
-                // 1. powershellMod layout: bin/LoraxMod.dll + ../schemas/
-                // 2. flat layout (pwsh-repl): LoraxMod.dll + schemas/
-                var bundledPath = Path.Combine(assemblyDir, "..", "schemas", $"{language}.json");
-                if (!File.Exists(bundledPath))
+                // Try embedded resource first (most reliable, no external files)
+                schema = LoadEmbeddedSchema(language);
+
+                // Try with TreeSitter.DotNet ID if original failed (e.g., "c-sharp" for "csharp")
+                if (schema == null && tsLanguageId != language)
                 {
-                    bundledPath = Path.Combine(assemblyDir, "schemas", $"{language}.json");
-                }
-                if (File.Exists(bundledPath))
-                {
-                    schema = SchemaReader.FromFile(bundledPath);
+                    schema = LoadEmbeddedSchema(tsLanguageId);
                 }
 
                 // Try SchemaCache (fetches from tree-sitter-language-pack)
@@ -143,7 +158,7 @@ namespace LoraxMod
                     }
                     catch
                     {
-                        // If original failed, try with TreeSitter.DotNet ID (e.g., "c-sharp" for "csharp")
+                        // If original failed, try with TreeSitter.DotNet ID
                         if (tsLanguageId != language)
                         {
                             try
@@ -186,7 +201,7 @@ namespace LoraxMod
                 {
                     throw new FileNotFoundException(
                         $"Schema not found for '{language}' (or '{tsLanguageId}'). " +
-                        $"Tried: bundled schemas, SchemaCache, and local grammars relative to assembly at {assemblyDir}");
+                        $"Tried: embedded resources, SchemaCache, and local grammars relative to assembly at {assemblyDir}");
                 }
             }
 
