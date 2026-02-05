@@ -53,4 +53,22 @@
     </EmbeddedResource>
   </ItemGroup>
 
+  <!-- Post-build: Copy DLL to PowerShell module locations -->
+  <Target Name="CopyToPowerShellModule" AfterTargets="Build">
+    <PropertyGroup>
+      <PowerShellModulePath>..\powershellMod\bin</PowerShellModulePath>
+      <UserModulePath>$(USERPROFILE)\OneDrive\Documents\PowerShell\Modules\LoraxMod\bin</UserModulePath>
+    </PropertyGroup>
+    <!-- Copy to local powershellMod (for MCP PWSH_MCP_MODULES) -->
+    <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll"
+          DestinationFolder="$(PowerShellModulePath)"
+          SkipUnchangedFiles="true" />
+    <Message Text="Copied $(AssemblyName).dll to $(PowerShellModulePath)" Importance="high" />
+    <!-- Copy to user module path (for command-line pwsh) -->
+    <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll"
+          DestinationFolder="$(UserModulePath)"
+          SkipUnchangedFiles="true" />
+    <Message Text="Copied $(AssemblyName).dll to $(UserModulePath)" Importance="high" />
+  </Target>
+
 </Project>

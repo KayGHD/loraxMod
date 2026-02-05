@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Management.Automation;
 using System.Threading.Tasks;
 
@@ -8,34 +9,59 @@ namespace LoraxMod.Cmdlets
 {
     /// <summary>
     /// Parse code to AST in one-shot mode (no session).
+    /// Supports wildcard file patterns and auto-detection of language from file extension.
     /// </summary>
-    [Cmdlet(VerbsData.ConvertTo, "LoraxAST")]
+    /// <example>
+    /// <code>
+    /// # Parse all Python files in current directory
+    /// ConvertTo-LoraxAST *.py
+    ///
+    /// # Parse all supported files recursively with full AST depth
+    /// ConvertTo-LoraxAST -Recurse -Depth
+    ///
+    /// # Parse specific file (language auto-detected)
+    /// ConvertTo-LoraxAST -FilePath app.js
+    ///
+    /// # Parse code string (language required)
+    /// "def foo(): pass" | ConvertTo-LoraxAST -Language python
+    /// </code>
+    /// </example>
+    [Cmdlet(VerbsData.ConvertTo, "LoraxAST", DefaultParameterSetName = "File")]
     [OutputType(typeof(ExtractedNode))]
     public class ConvertToLoraxASTCommand : PSCmdlet
     {
         /// <summary>
-        /// Source code to parse.
+        /// Source code to parse. Requires -Language parameter.
         /// </summary>
         [Parameter(Mandatory = true, ValueFromPipeline = true, ParameterSetName = "Code")]
         public string Code { get; set; } = string.Empty;
 
         /// <summary>
-        /// Path to source file to parse.
+        /// Path or wildcard pattern for source files (e.g., '*.py', 'src/**/*.js').
+        /// Defaults to all supported extensions if not specified.
         /// </summary>
-        [Parameter(Mandatory = true, ParameterSetName = "File")]
+        [Parameter(Mandatory = false, Position = 0, ParameterSetName = "File")]
         public string FilePath { get; set; } = string.Empty;
 
         /// <summary>
         /// Language name (e.g., 'javascript', 'python').
+        /// Optional for file parsing - auto-detected from extension.
+        /// Required for code string parsing.
         /// </summary>
-        [Parameter(Mandatory = true, Position = 0)]
-        public string Language { get; set; } = string.Empty;
+        [Parameter(Mandatory = false)]
+        public string? Language { get; set; }
 
         /// <summary>
-        /// Recursively extract all child nodes.
+        /// Recursively search subdirectories for files.
         /// </summary>
         [Parameter(Mandatory = false)]
         public SwitchParameter Recurse { get; set; }
+
+        /// <summary>
+        /// Extract all child nodes from AST (full depth traversal).
+        /// </summary>
+        [Parameter(Mandatory = false)]
+        public SwitchParameter Depth { get; set; }
 
         /// <summary>
         /// Optional schema path (defaults to SchemaCache).
@@ -43,29 +69,163 @@ namespace LoraxMod.Cmdlets
         [Parameter(Mandatory = false)]
         public string? SchemaPath { get; set; }
 
+        // Cache parsers by language for batch processing
+        private readonly Dictionary<string, Parser> _parserCache = new();
+
+        /// <summary>
+        /// Build default wildcard pattern from all supported extensions.
+        /// </summary>
+        private static string GetDefaultPattern()
+        {
+            // Get all supported extensions from MultiParser
+            var extensions = MultiParser.Extensions.Keys
+                .Select(e => "*" + e)
+                .ToArray();
+            return string.Join(",", extensions);
+        }
+
+        /// <summary>
+        /// Get or create parser for a language.
+        /// </summary>
+        private Parser GetParser(string language)
+        {
+            if (!_parserCache.TryGetValue(language, out var parser))
+            {
+                var task = Task.Run(async () => await Parser.CreateAsync(language, SchemaPath));
+                parser = task.GetAwaiter().GetResult();
+                _parserCache[language] = parser;
+            }
+            return parser;
+        }
+
+        /// <summary>
+        /// Resolve wildcard pattern to file list.
+        /// </summary>
+        private IEnumerable<string> ResolveFiles(string pattern)
+        {
+            var searchOption = Recurse ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
+            var baseDir = SessionState.Path.CurrentFileSystemLocation.Path;
+
+            // Handle comma-separated patterns (for default pattern)
+            var patterns = pattern.Split(',', StringSplitOptions.RemoveEmptyEntries);
+            var files = new List<string>();
+
+            foreach (var p in patterns)
+            {
+                var trimmed = p.Trim();
+
+                // Check if pattern contains directory component
+                var dir = Path.GetDirectoryName(trimmed);
+                var filePattern = Path.GetFileName(trimmed);
+
+                if (string.IsNullOrEmpty(dir))
+                {
+                    dir = baseDir;
+                }
+                else if (!Path.IsPathRooted(dir))
+                {
+                    dir = Path.Combine(baseDir, dir);
+                }
+
+                if (string.IsNullOrEmpty(filePattern))
+                {
+                    filePattern = "*";
+                }
+
+                try
+                {
+                    if (Directory.Exists(dir))
+                    {
+                        files.AddRange(Directory.EnumerateFiles(dir, filePattern, searchOption));
+                    }
+                }
+                catch (Exception ex)
+                {
+                    WriteWarning($"Error searching {dir}/{filePattern}: {ex.Message}");
+                }
+            }
+
+            // Filter to only supported extensions and deduplicate
+            return files
+                .Where(f => MultiParser.Extensions.ContainsKey(Path.GetExtension(f).ToLowerInvariant()))
+                .Distinct()
+                .OrderBy(f => f);
+        }
+
         protected override void ProcessRecord()
         {
             try
             {
-                // Create parser
-                var task = Task.Run(async () => await Parser.CreateAsync(Language, SchemaPath));
-                var parser = task.GetAwaiter().GetResult();
-
-                try
+                if (ParameterSetName == "Code")
                 {
-                    // Parse code
-                    var tree = ParameterSetName == "File"
-                        ? parser.ParseFile(FilePath)
-                        : parser.Parse(Code);
+                    // Code string mode - language required
+                    if (string.IsNullOrEmpty(Language))
+                    {
+                        WriteError(new ErrorRecord(
+                            new ArgumentException("Language parameter is required when parsing code strings"),
+                            "LanguageRequired",
+                            ErrorCategory.InvalidArgument,
+                            Code));
+                        return;
+                    }
 
-                    // Extract all data
-                    var result = parser.ExtractAll(tree, recurse: Recurse);
-
+                    var parser = GetParser(Language);
+                    var tree = parser.Parse(Code);
+                    var result = parser.ExtractAll(tree, recurse: Depth);
                     WriteObject(result);
                 }
-                finally
+                else
                 {
-                    parser.Dispose();
+                    // File mode - resolve pattern and process each file
+                    var pattern = string.IsNullOrEmpty(FilePath) ? GetDefaultPattern() : FilePath;
+                    var files = ResolveFiles(pattern).ToList();
+
+                    if (files.Count == 0)
+                    {
+                        WriteWarning($"No files found matching pattern: {pattern}");
+                        return;
+                    }
+
+                    WriteVerbose($"Processing {files.Count} file(s)...");
+
+                    foreach (var file in files)
+                    {
+                        try
+                        {
+                            // Auto-detect language from extension if not specified
+                            var ext = Path.GetExtension(file).ToLowerInvariant();
+                            var lang = Language;
+
+                            if (string.IsNullOrEmpty(lang))
+                            {
+                                if (!MultiParser.Extensions.TryGetValue(ext, out lang))
+                                {
+                                    WriteWarning($"Cannot detect language for: {file}");
+                                    continue;
+                                }
+                            }
+
+                            var parser = GetParser(lang!);
+                            var tree = parser.ParseFile(file);
+                            var result = parser.ExtractAll(tree, recurse: Depth);
+
+                            // Add file path to result for context
+                            if (result is ExtractedNode node)
+                            {
+                                node.SourceFile = file;
+                            }
+
+                            WriteObject(result);
+                        }
+                        catch (Exception ex)
+                        {
+                            WriteError(new ErrorRecord(
+                                ex,
+                                "ParseFileFailed",
+                                ErrorCategory.InvalidOperation,
+                                file));
+                        }
+                    }
                 }
             }
             catch (Exception ex)
@@ -76,6 +236,16 @@ namespace LoraxMod.Cmdlets
                     ErrorCategory.InvalidOperation,
                     Code ?? FilePath));
             }
+        }
+
+        protected override void EndProcessing()
+        {
+            // Dispose all cached parsers
+            foreach (var parser in _parserCache.Values)
+            {
+                parser.Dispose();
+            }
+            _parserCache.Clear();
         }
     }
 
