@@ -9,17 +9,17 @@
 
     <!-- NuGet Package Metadata -->
     <PackageId>LoraxMod</PackageId>
-    <Version>1.0.6</Version>
-    <Authors>jackyHardDisk</Authors>
-    <Company>jackyHardDisk</Company>
+    <Version>1.0.8</Version>
+    <Authors>KayGHD</Authors>
+    <Company>KayGHD</Company>
     <Description>Schema-driven AST parsing and semantic diff for 28+ languages. Uses TreeSitter.DotNet for native parsing, reads node-types.json schemas dynamically. Includes PowerShell cmdlets for batch processing.</Description>
     <PackageTags>tree-sitter;ast;parser;semantic-diff;code-analysis;powershell</PackageTags>
-    <PackageProjectUrl>https://github.com/jackyHardDisk/loraxMod</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/jackyHardDisk/loraxMod</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/KayGHD/loraxMod</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/KayGHD/loraxMod</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <Copyright>Copyright (c) 2025 jackyHardDisk</Copyright>
+    <Copyright>Copyright (c) 2025 KayGHD</Copyright>
 
     <!-- Generate documentation XML -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
