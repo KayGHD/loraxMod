@@ -35,6 +35,16 @@ namespace LoraxMod
         public Dictionary<string, string> Extractions { get; }
         public List<ExtractedNode> Children { get; }
 
+        /// <summary>
+        /// Source file path (set by cmdlets for context).
+        /// </summary>
+        public string? SourceFile { get; set; }
+
+        /// <summary>
+        /// Parent node type (for decorator detection in dead code analysis).
+        /// </summary>
+        public string? ParentNodeType { get; set; }
+
         public ExtractedNode(
             string nodeType,
             int startLine,
@@ -43,7 +53,8 @@ namespace LoraxMod
             int endColumn,
             string text,
             Dictionary<string, string>? extractions = null,
-            List<ExtractedNode>? children = null)
+            List<ExtractedNode>? children = null,
+            string? parentNodeType = null)
         {
             NodeType = nodeType;
             StartLine = startLine;
@@ -53,6 +64,7 @@ namespace LoraxMod
             Text = text;
             Extractions = extractions ?? new Dictionary<string, string>();
             Children = children ?? new List<ExtractedNode>();
+            ParentNodeType = parentNodeType;
         }
 
         /// <summary>
@@ -73,6 +85,16 @@ namespace LoraxMod
                 ["text"] = Text,
                 ["extractions"] = Extractions
             };
+
+            if (!string.IsNullOrEmpty(SourceFile))
+            {
+                result["source_file"] = SourceFile;
+            }
+
+            if (!string.IsNullOrEmpty(ParentNodeType))
+            {
+                result["parent_node_type"] = ParentNodeType;
+            }
 
             if (Children.Count > 0)
             {
@@ -194,19 +216,21 @@ namespace LoraxMod
         {
             var typeSet = new HashSet<string>(nodeTypes);
             var results = new List<ExtractedNode>();
-            FindByType(root, typeSet, results);
+            FindByType(root, typeSet, results, parentType: null);
             return results;
         }
 
-        private void FindByType(INodeInterface node, HashSet<string> typeSet, List<ExtractedNode> results)
+        private void FindByType(INodeInterface node, HashSet<string> typeSet, List<ExtractedNode> results, string? parentType)
         {
             if (typeSet.Contains(node.Type))
             {
-                results.Add(ExtractNode(node));
+                var extracted = ExtractNode(node);
+                extracted.ParentNodeType = parentType;
+                results.Add(extracted);
             }
             foreach (var child in node.Children)
             {
-                FindByType(child, typeSet, results);
+                FindByType(child, typeSet, results, node.Type);
             }
         }
 

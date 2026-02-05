@@ -1,5 +1,5 @@
 @{
-    ModuleVersion = '1.0.6'
+    ModuleVersion = '1.0.8'
     GUID = '8a3f7d92-4e1c-4b5a-9f2e-6d8c1a3b7f4e'
     Author = 'jackyHardDisk'
     CompanyName = 'jackyHardDisk'
@@ -20,7 +20,9 @@
         'Stop-LoraxParserSession',
         'Find-LoraxFunction',
         'Get-LoraxDependency',
-        'Get-LoraxDiff'
+        'Get-LoraxDiff',
+        'Find-LoraxCallSite',
+        'Find-DeadCode'
     )
 
     VariablesToExport = @()
@@ -37,6 +39,47 @@
             LicenseUri = 'https://github.com/jackyHardDisk/loraxMod/blob/master/LICENSE'
             ProjectUri = 'https://github.com/jackyHardDisk/loraxMod'
             ReleaseNotes = @'
+## v1.0.8 - Dead Code Detection
+
+New Cmdlets:
+- Find-LoraxCallSite: Extract all function/method calls from source files
+- Find-DeadCode: Detect unused functions by comparing definitions to call sites
+
+Features:
+- Supports 11 languages (Python, JavaScript, TypeScript, C#, Java, Go, Rust, C, C++, Ruby, PHP)
+- False positive filtering: excludes decorated functions, entry points, framework hooks
+- ParentNodeType tracking for decorator detection
+- Cross-file analysis with wildcard pattern support
+
+Parameters for Find-DeadCode:
+- -Path: File pattern (wildcards supported)
+- -Language: Optional, auto-detect from extension
+- -Recurse: Search subdirectories
+- -ExcludeDecorated: Skip decorated functions (default: true)
+- -ExcludeEntryPoints: Skip main, test_*, etc. (default: true)
+- -ExcludeFrameworkHooks: Skip __init__, Dispose, etc. (default: true)
+
+Example:
+  Find-DeadCode -Path "src/**/*.py" -Recurse
+
+## v1.0.7 - ConvertTo-LoraxAST Usability Improvements
+
+Changes:
+- Language auto-detection from file extension (Language parameter now optional for files)
+- Wildcard pattern support in FilePath (e.g., *.py, src/**/*.js)
+- Default to all supported extensions when no FilePath specified
+- Renamed -Recurse to -Depth for AST traversal (extracts all child nodes)
+- New -Recurse switch for file recursion (searches subdirectories)
+- Added SourceFile property to ExtractedNode for context
+
+Examples:
+- ConvertTo-LoraxAST *.py           # Parse all Python files
+- ConvertTo-LoraxAST -Recurse       # All supported files, recursively
+- ConvertTo-LoraxAST -Recurse -Depth  # Full AST with file recursion
+- "def foo(): pass" | ConvertTo-LoraxAST -Language python  # Code string
+
+Supported extensions: .js, .mjs, .jsx, .ts, .tsx, .py, .rs, .go, .c, .h, .cpp, .hpp, .cs, .css, .html, .sh, .java, .rb, .php, .swift, .json
+
 ## v1.0.6 - Embedded Schemas in DLL
 
 Changes:

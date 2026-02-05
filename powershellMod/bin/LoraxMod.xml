@@ -29,6 +29,12 @@
             Optional schema path (defaults to SchemaCache).
             </summary>
         </member>
+        <member name="F:LoraxMod.Cmdlets.FindLoraxFunctionCommand.FunctionNodeTypes">
+            <summary>
+            Language-specific function node types.
+            Public for reuse by Find-DeadCode.
+            </summary>
+        </member>
         <member name="T:LoraxMod.Cmdlets.GetLoraxDependencyCommand">
             <summary>
             Extract import/include dependencies (convenience wrapper).
@@ -94,34 +100,177 @@
             Optional schema path (defaults to SchemaCache).
             </summary>
         </member>
-        <member name="T:LoraxMod.Cmdlets.ConvertToLoraxASTCommand">
+        <member name="T:LoraxMod.Cmdlets.FindLoraxCallSiteCommand">
             <summary>
-            Parse code to AST in one-shot mode (no session).
+            Extract all function/method calls from source files.
             </summary>
         </member>
-        <member name="P:LoraxMod.Cmdlets.ConvertToLoraxASTCommand.Code">
+        <member name="P:LoraxMod.Cmdlets.FindLoraxCallSiteCommand.Code">
             <summary>
             Source code to parse.
             </summary>
         </member>
-        <member name="P:LoraxMod.Cmdlets.ConvertToLoraxASTCommand.FilePath">
+        <member name="P:LoraxMod.Cmdlets.FindLoraxCallSiteCommand.FilePath">
             <summary>
             Path to source file to parse.
+            </summary>
+        </member>
+        <member name="P:LoraxMod.Cmdlets.FindLoraxCallSiteCommand.Language">
+            <summary>
+            Language name (e.g., 'javascript', 'python').
+            </summary>
+        </member>
+        <member name="P:LoraxMod.Cmdlets.FindLoraxCallSiteCommand.SchemaPath">
+            <summary>
+            Optional schema path (defaults to SchemaCache).
+            </summary>
+        </member>
+        <member name="F:LoraxMod.Cmdlets.FindLoraxCallSiteCommand.CallNodeTypes">
+            <summary>
+            Language-specific call node types and their callee fields.
+            </summary>
+        </member>
+        <member name="T:LoraxMod.Cmdlets.FindDeadCodeCommand">
+             <summary>
+             Detect dead (unused) code by comparing function definitions to call sites.
+             </summary>
+             <example>
+             <code>
+             # Find dead code in Python files
+             Find-DeadCode -Path "src/**/*.py" -Recurse
+            
+             # Find dead code without filtering
+             Find-DeadCode -Path "*.js" -ExcludeDecorated:$false -ExcludeEntryPoints:$false
+            
+             # Specify language explicitly
+             Find-DeadCode -Path "lib/*.ts" -Language typescript
+             </code>
+             </example>
+        </member>
+        <member name="P:LoraxMod.Cmdlets.FindDeadCodeCommand.Path">
+            <summary>
+            Path or wildcard pattern for source files (e.g., '*.py', 'src/**/*.js').
+            </summary>
+        </member>
+        <member name="P:LoraxMod.Cmdlets.FindDeadCodeCommand.Language">
+            <summary>
+            Language name (e.g., 'javascript', 'python').
+            Optional - auto-detected from file extension if not specified.
+            </summary>
+        </member>
+        <member name="P:LoraxMod.Cmdlets.FindDeadCodeCommand.Recurse">
+            <summary>
+            Recursively search subdirectories for files.
+            </summary>
+        </member>
+        <member name="P:LoraxMod.Cmdlets.FindDeadCodeCommand.ExcludeDecorated">
+            <summary>
+            Skip decorated functions (default: true).
+            Decorated functions are often registered via frameworks.
+            </summary>
+        </member>
+        <member name="P:LoraxMod.Cmdlets.FindDeadCodeCommand.ExcludeEntryPoints">
+            <summary>
+            Skip entry points like main, test_*, etc. (default: true).
+            </summary>
+        </member>
+        <member name="P:LoraxMod.Cmdlets.FindDeadCodeCommand.ExcludeFrameworkHooks">
+            <summary>
+            Skip framework hooks like __init__, Dispose, etc. (default: true).
+            </summary>
+        </member>
+        <member name="P:LoraxMod.Cmdlets.FindDeadCodeCommand.SchemaPath">
+            <summary>
+            Optional schema path (defaults to SchemaCache).
+            </summary>
+        </member>
+        <member name="P:LoraxMod.Cmdlets.FindDeadCodeCommand.IncludeStats">
+            <summary>
+            Include summary statistics in output.
+            </summary>
+        </member>
+        <member name="M:LoraxMod.Cmdlets.FindDeadCodeCommand.GetParser(System.String)">
+            <summary>
+            Get or create parser for a language.
+            </summary>
+        </member>
+        <member name="M:LoraxMod.Cmdlets.FindDeadCodeCommand.ResolveFiles(System.String)">
+            <summary>
+            Resolve wildcard pattern to file list.
+            </summary>
+        </member>
+        <member name="M:LoraxMod.Cmdlets.FindDeadCodeCommand.DetectLanguage(System.String)">
+            <summary>
+            Detect language from file extension.
+            </summary>
+        </member>
+        <member name="T:LoraxMod.Cmdlets.ConvertToLoraxASTCommand">
+             <summary>
+             Parse code to AST in one-shot mode (no session).
+             Supports wildcard file patterns and auto-detection of language from file extension.
+             </summary>
+             <example>
+             <code>
+             # Parse all Python files in current directory
+             ConvertTo-LoraxAST *.py
+            
+             # Parse all supported files recursively with full AST depth
+             ConvertTo-LoraxAST -Recurse -Depth
+            
+             # Parse specific file (language auto-detected)
+             ConvertTo-LoraxAST -FilePath app.js
+            
+             # Parse code string (language required)
+             "def foo(): pass" | ConvertTo-LoraxAST -Language python
+             </code>
+             </example>
+        </member>
+        <member name="P:LoraxMod.Cmdlets.ConvertToLoraxASTCommand.Code">
+            <summary>
+            Source code to parse. Requires -Language parameter.
+            </summary>
+        </member>
+        <member name="P:LoraxMod.Cmdlets.ConvertToLoraxASTCommand.FilePath">
+            <summary>
+            Path or wildcard pattern for source files (e.g., '*.py', 'src/**/*.js').
+            Defaults to all supported extensions if not specified.
             </summary>
         </member>
         <member name="P:LoraxMod.Cmdlets.ConvertToLoraxASTCommand.Language">
             <summary>
             Language name (e.g., 'javascript', 'python').
+            Optional for file parsing - auto-detected from extension.
+            Required for code string parsing.
             </summary>
         </member>
         <member name="P:LoraxMod.Cmdlets.ConvertToLoraxASTCommand.Recurse">
             <summary>
-            Recursively extract all child nodes.
+            Recursively search subdirectories for files.
+            </summary>
+        </member>
+        <member name="P:LoraxMod.Cmdlets.ConvertToLoraxASTCommand.Depth">
+            <summary>
+            Extract all child nodes from AST (full depth traversal).
             </summary>
         </member>
         <member name="P:LoraxMod.Cmdlets.ConvertToLoraxASTCommand.SchemaPath">
             <summary>
             Optional schema path (defaults to SchemaCache).
+            </summary>
+        </member>
+        <member name="M:LoraxMod.Cmdlets.ConvertToLoraxASTCommand.GetDefaultPattern">
+            <summary>
+            Build default wildcard pattern from all supported extensions.
+            </summary>
+        </member>
+        <member name="M:LoraxMod.Cmdlets.ConvertToLoraxASTCommand.GetParser(System.String)">
+            <summary>
+            Get or create parser for a language.
+            </summary>
+        </member>
+        <member name="M:LoraxMod.Cmdlets.ConvertToLoraxASTCommand.ResolveFiles(System.String)">
+            <summary>
+            Resolve wildcard pattern to file list.
             </summary>
         </member>
         <member name="T:LoraxMod.Cmdlets.FindLoraxNodeCommand">
@@ -331,6 +480,109 @@
             Clear all sessions (for cleanup).
             </summary>
         </member>
+        <member name="T:LoraxMod.UnusedDefinition">
+            <summary>
+            Represents an unused function/method definition.
+            </summary>
+        </member>
+        <member name="M:LoraxMod.UnusedDefinition.ToDict">
+            <summary>
+            Convert to dictionary for JSON serialization.
+            </summary>
+        </member>
+        <member name="T:LoraxMod.CallGraphBuilder">
+            <summary>
+            Builds call graph from definitions and call sites.
+            Tracks which functions are defined and which are called.
+            </summary>
+        </member>
+        <member name="M:LoraxMod.CallGraphBuilder.AddDefinitions(System.Collections.Generic.IEnumerable{LoraxMod.ExtractedNode})">
+            <summary>
+            Add function/method definitions from extracted nodes.
+            </summary>
+        </member>
+        <member name="M:LoraxMod.CallGraphBuilder.AddCallSites(System.Collections.Generic.IEnumerable{LoraxMod.ExtractedNode},System.String)">
+            <summary>
+            Add call sites and extract called identifiers.
+            </summary>
+        </member>
+        <member name="M:LoraxMod.CallGraphBuilder.ExtractCalleeName(System.String)">
+            <summary>
+            Extract callee name from call expression text.
+            Handles simple cases like "foo()", "bar.baz()".
+            </summary>
+        </member>
+        <member name="M:LoraxMod.CallGraphBuilder.GetUnusedDefinitions">
+            <summary>
+            Get all definitions that are not called.
+            </summary>
+        </member>
+        <member name="P:LoraxMod.CallGraphBuilder.DefinitionCount">
+            <summary>
+            Get count of definitions.
+            </summary>
+        </member>
+        <member name="P:LoraxMod.CallGraphBuilder.CallSiteCount">
+            <summary>
+            Get count of unique call sites.
+            </summary>
+        </member>
+        <member name="T:LoraxMod.FalsePositiveFilter">
+            <summary>
+            Filters false positives from dead code analysis.
+            </summary>
+        </member>
+        <member name="F:LoraxMod.FalsePositiveFilter.DecoratorParentTypes">
+            <summary>
+            Parent node types that indicate decorated functions.
+            </summary>
+        </member>
+        <member name="F:LoraxMod.FalsePositiveFilter.EntryPointNames">
+            <summary>
+            Entry point names (case-insensitive patterns).
+            </summary>
+        </member>
+        <member name="F:LoraxMod.FalsePositiveFilter.EntryPointPatterns">
+            <summary>
+            Entry point patterns (regex).
+            </summary>
+        </member>
+        <member name="F:LoraxMod.FalsePositiveFilter.FrameworkHooks">
+            <summary>
+            Framework hooks by language.
+            </summary>
+        </member>
+        <member name="M:LoraxMod.FalsePositiveFilter.ShouldExclude(LoraxMod.ExtractedNode,System.String@)">
+            <summary>
+            Check if a definition should be excluded from dead code results.
+            </summary>
+        </member>
+        <member name="M:LoraxMod.FalsePositiveFilter.IsDecorated(LoraxMod.ExtractedNode)">
+            <summary>
+            Check if function is decorated (has decorator parent).
+            </summary>
+        </member>
+        <member name="M:LoraxMod.FalsePositiveFilter.IsEntryPoint(System.String)">
+            <summary>
+            Check if identifier is an entry point or test.
+            </summary>
+        </member>
+        <member name="M:LoraxMod.FalsePositiveFilter.IsFrameworkHook(System.String)">
+            <summary>
+            Check if identifier is a framework hook/magic method.
+            </summary>
+        </member>
+        <member name="M:LoraxMod.FalsePositiveFilter.FilterUnused(System.Collections.Generic.IEnumerable{LoraxMod.ExtractedNode})">
+            <summary>
+            Filter unused definitions, removing false positives.
+            Returns UnusedDefinition objects with reasons.
+            </summary>
+        </member>
+        <member name="T:LoraxMod.DeadCodeOptions">
+            <summary>
+            Options for dead code detection.
+            </summary>
+        </member>
         <member name="T:LoraxMod.ChangeType">
             <summary>
             Types of semantic changes between two ASTs.
@@ -380,6 +632,16 @@
         <member name="T:LoraxMod.ExtractedNode">
             <summary>
             Extracted node with structured data.
+            </summary>
+        </member>
+        <member name="P:LoraxMod.ExtractedNode.SourceFile">
+            <summary>
+            Source file path (set by cmdlets for context).
+            </summary>
+        </member>
+        <member name="P:LoraxMod.ExtractedNode.ParentNodeType">
+            <summary>
+            Parent node type (for decorator detection in dead code analysis).
             </summary>
         </member>
         <member name="P:LoraxMod.ExtractedNode.Identity">

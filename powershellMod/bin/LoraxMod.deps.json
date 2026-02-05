@@ -16,6 +16,9 @@
         }
       },
       "Microsoft.ApplicationInsights/2.21.0": {
+        "dependencies": {
+          "System.Diagnostics.DiagnosticSource": "8.0.0"
+        },
         "runtime": {
           "lib/netstandard2.0/Microsoft.ApplicationInsights.dll": {
             "assemblyVersion": "2.21.0.429",
@@ -268,6 +271,7 @@
           }
         }
       },
+      "System.Diagnostics.DiagnosticSource/8.0.0": {},
       "System.Diagnostics.EventLog/8.0.0": {
         "runtime": {
           "lib/net8.0/System.Diagnostics.EventLog.dll": {
@@ -306,6 +310,7 @@
           }
         }
       },
+      "System.Formats.Asn1/8.0.0": {},
       "System.Management/8.0.0": {
         "dependencies": {
           "System.CodeDom": "8.0.0"
@@ -335,10 +340,13 @@
           "Microsoft.Win32.Registry.AccessControl": "8.0.0",
           "Newtonsoft.Json": "13.0.3",
           "System.Configuration.ConfigurationManager": "8.0.0",
+          "System.Diagnostics.DiagnosticSource": "8.0.0",
           "System.DirectoryServices": "8.0.0",
           "System.Management": "8.0.0",
+          "System.Security.AccessControl": "6.0.2-mauipre.1.22102.15",
           "System.Security.Cryptography.Pkcs": "8.0.0",
-          "System.Security.Permissions": "8.0.0"
+          "System.Security.Permissions": "8.0.0",
+          "System.Text.Encoding.CodePages": "8.0.0"
         },
         "runtimeTargets": {
           "runtimes/unix/lib/net8.0/System.Management.Automation.dll": {
@@ -355,7 +363,11 @@
           }
         }
       },
+      "System.Security.AccessControl/6.0.2-mauipre.1.22102.15": {},
       "System.Security.Cryptography.Pkcs/8.0.0": {
+        "dependencies": {
+          "System.Formats.Asn1": "8.0.0"
+        },
         "runtime": {
           "lib/net8.0/System.Security.Cryptography.Pkcs.dll": {
             "assemblyVersion": "8.0.0.0",
@@ -390,6 +402,7 @@
           }
         }
       },
+      "System.Text.Encoding.CodePages/8.0.0": {},
       "System.Windows.Extensions/8.0.0": {
         "runtime": {
           "lib/net8.0/System.Windows.Extensions.dll": {
@@ -1181,6 +1194,13 @@
       "path": "system.configuration.configurationmanager/8.0.0",
       "hashPath": "system.configuration.configurationmanager.8.0.0.nupkg.sha512"
     },
+    "System.Diagnostics.DiagnosticSource/8.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-c9xLpVz6PL9lp/djOWtk5KPDZq3cSYpmXoJQY524EOtuFl5z9ZtsotpsyrDW40U1DRnQSYvcPKEUV0X//u6gkQ==",
+      "path": "system.diagnostics.diagnosticsource/8.0.0",
+      "hashPath": "system.diagnostics.diagnosticsource.8.0.0.nupkg.sha512"
+    },
     "System.Diagnostics.EventLog/8.0.0": {
       "type": "package",
       "serviceable": true,
@@ -1195,6 +1215,13 @@
       "path": "system.directoryservices/8.0.0",
       "hashPath": "system.directoryservices.8.0.0.nupkg.sha512"
     },
+    "System.Formats.Asn1/8.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-AJukBuLoe3QeAF+mfaRKQb2dgyrvt340iMBHYv+VdBzCUM06IxGlvl0o/uPOS7lHnXPN6u8fFRHSHudx5aTi8w==",
+      "path": "system.formats.asn1/8.0.0",
+      "hashPath": "system.formats.asn1.8.0.0.nupkg.sha512"
+    },
     "System.Management/8.0.0": {
       "type": "package",
       "serviceable": true,
@@ -1208,6 +1235,13 @@
       "sha512": "sha512-nWsPB750tBAA6+08kcRY9fiV2eiRK6JYmySL4/IllocnA+gCUP2+sHX1enzy4uQ5DHE4SgFNv9yW+7tKX7uqsw==",
       "path": "system.management.automation/7.4.0",
       "hashPath": "system.management.automation.7.4.0.nupkg.sha512"
+    },
+    "System.Security.AccessControl/6.0.2-mauipre.1.22102.15": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-ny0SrGGm/O1Q889Zzx1tLP8X0UjkOHjDPN0omy3onMwU1qPrPq90kWvMY8gmh6eHtRkRAGzlJlEer64ii7GMrg==",
+      "path": "system.security.accesscontrol/6.0.2-mauipre.1.22102.15",
+      "hashPath": "system.security.accesscontrol.6.0.2-mauipre.1.22102.15.nupkg.sha512"
     },
     "System.Security.Cryptography.Pkcs/8.0.0": {
       "type": "package",
@@ -1229,6 +1263,13 @@
       "sha512": "sha512-v/BBylw7XevuAsHXoX9dDUUfmBIcUf7Lkz8K3ZXIKz3YRKpw8YftpSir4n4e/jDTKFoaK37AsC3xnk+GNFI1Ow==",
       "path": "system.security.permissions/8.0.0",
       "hashPath": "system.security.permissions.8.0.0.nupkg.sha512"
+    },
+    "System.Text.Encoding.CodePages/8.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-OZIsVplFGaVY90G2SbpgU7EnCoOO5pw1t4ic21dBF3/1omrJFpAGoNAVpPyMVOC90/hvgkGG3VFqR13YgZMQfg==",
+      "path": "system.text.encoding.codepages/8.0.0",
+      "hashPath": "system.text.encoding.codepages.8.0.0.nupkg.sha512"
     },
     "System.Windows.Extensions/8.0.0": {
       "type": "package",

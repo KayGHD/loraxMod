@@ -17,7 +17,7 @@ Multi-language AST parsing system that treats tree-sitter grammar schemas as sou
 **Three Runtime Bindings**
 - `loraxMod-js/` - JavaScript/Node.js (tree-sitter-web + WASM)
 - `loraxPy/` - Python (py-tree-sitter native)
-- `loraxMod-cs/` - C#/.NET (Wasmtime.NET + WASM)
+- `loraxMod-cs/` - C#/.NET (TreeSitter.DotNet native, 12 cmdlets, dead code detection)
 
 **Utilities**
 - `bin/streaming_query_parser.js` - JSON streaming protocol
@@ -111,10 +111,12 @@ deprecated/             Archived pattern-based extraction code
 - Native performance
 
 **C# (loraxMod-cs):**
-- Wasmtime.NET (WASM runtime for .NET)
-- Load from `../grammars/compiled/*.wasm`
+- TreeSitter.DotNet 1.1.1 (native C# bindings, not WASM)
+- 28 pre-built language parsers (native DLLs)
+- 12 PowerShell cmdlets including dead code detection
 - No Node.js dependency
-- Windows-focused (PowerShell environment)
+- Windows-focused (PowerShell MCP integration)
+- **v1.0.8:** Find-LoraxCallSite, Find-DeadCode with false positive filtering
 
 ## Schema-Driven Query Flow
 
@@ -173,12 +175,23 @@ Archived Dec 2025 during schema-driven redesign.
 - Schema extraction and registry
 - Architecture redesign
 - loraxPy implementation (schema.py, extractor.py, differ.py, parser.py, schema_cache.py)
+- loraxMod-cs implementation (v1.0.8: 12 cmdlets, dead code detection, 46 tests)
 
 **In Progress:**
 - loraxMod-js implementation
 
-**Planned:**
-- loraxMod-cs implementation
+**Pitfalls & Lessons Learned:**
+
+**Assembly Load Caching (loraxMod-cs):**
+When testing DLL changes, `Assembly.LoadFrom($path)` caches assemblies. Reloading same path returns cached assembly, not updated file.
+
+Solution: Load via byte array to bypass cache
+```powershell
+$bytes = [IO.File]::ReadAllBytes("LoraxMod.dll")
+$assembly = [Assembly]::Load($bytes)  # Fresh load
+```
+
+Deployment: Kill PowerShellMcpServer → copy DLL → restart/reconnect MCP
 
 ## Future Roadmap
 

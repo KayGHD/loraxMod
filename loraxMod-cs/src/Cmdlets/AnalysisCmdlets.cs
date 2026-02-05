@@ -39,7 +39,11 @@ namespace LoraxMod.Cmdlets
         [Parameter(Mandatory = false)]
         public string? SchemaPath { get; set; }
 
-        private static readonly Dictionary<string, string[]> FunctionNodeTypes = new()
+        /// <summary>
+        /// Language-specific function node types.
+        /// Public for reuse by Find-DeadCode.
+        /// </summary>
+        internal static readonly Dictionary<string, string[]> FunctionNodeTypes = new()
         {
             ["javascript"] = new[] { "function_declaration", "arrow_function", "function_expression", "method_definition" },
             ["typescript"] = new[] { "function_declaration", "arrow_function", "function_expression", "method_definition" },
@@ -264,6 +268,107 @@ namespace LoraxMod.Cmdlets
                     "DiffFailed",
                     ErrorCategory.InvalidOperation,
                     Language));
+            }
+        }
+    }
+
+    /// <summary>
+    /// Extract all function/method calls from source files.
+    /// </summary>
+    [Cmdlet(VerbsCommon.Find, "LoraxCallSite")]
+    [OutputType(typeof(ExtractedNode[]))]
+    public class FindLoraxCallSiteCommand : PSCmdlet
+    {
+        /// <summary>
+        /// Source code to parse.
+        /// </summary>
+        [Parameter(Mandatory = true, ValueFromPipeline = true, ParameterSetName = "Code")]
+        public string Code { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Path to source file to parse.
+        /// </summary>
+        [Parameter(Mandatory = true, ParameterSetName = "File")]
+        public string FilePath { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Language name (e.g., 'javascript', 'python').
+        /// </summary>
+        [Parameter(Mandatory = true, Position = 0)]
+        public string Language { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Optional schema path (defaults to SchemaCache).
+        /// </summary>
+        [Parameter(Mandatory = false)]
+        public string? SchemaPath { get; set; }
+
+        /// <summary>
+        /// Language-specific call node types and their callee fields.
+        /// </summary>
+        internal static readonly Dictionary<string, (string[] nodeTypes, string calleeField)> CallNodeTypes = new()
+        {
+            ["javascript"] = (new[] { "call_expression" }, "function"),
+            ["typescript"] = (new[] { "call_expression" }, "function"),
+            ["python"] = (new[] { "call" }, "function"),
+            ["csharp"] = (new[] { "invocation_expression" }, "function"),
+            ["rust"] = (new[] { "call_expression" }, "function"),
+            ["go"] = (new[] { "call_expression" }, "function"),
+            ["java"] = (new[] { "method_invocation" }, "name"),
+            ["c"] = (new[] { "call_expression" }, "function"),
+            ["cpp"] = (new[] { "call_expression" }, "function"),
+            ["ruby"] = (new[] { "call", "method_call" }, "method"),
+            ["php"] = (new[] { "function_call_expression" }, "function"),
+        };
+
+        protected override void ProcessRecord()
+        {
+            try
+            {
+                var langKey = Language.ToLowerInvariant();
+                if (!CallNodeTypes.TryGetValue(langKey, out var config))
+                {
+                    WriteWarning($"Call node types not predefined for '{Language}'. Use Find-LoraxNode with explicit types.");
+                    return;
+                }
+
+                // Create parser
+                var task = Task.Run(async () => await Parser.CreateAsync(Language, SchemaPath));
+                var parser = task.GetAwaiter().GetResult();
+
+                try
+                {
+                    // Parse code
+                    var tree = ParameterSetName == "File"
+                        ? parser.ParseFile(FilePath)
+                        : parser.Parse(Code);
+
+                    // Extract call sites
+                    var results = parser.ExtractByType(tree, config.nodeTypes);
+
+                    // Set source file for context
+                    if (ParameterSetName == "File")
+                    {
+                        foreach (var node in results)
+                        {
+                            node.SourceFile = FilePath;
+                        }
+                    }
+
+                    WriteObject(results, enumerateCollection: true);
+                }
+                finally
+                {
+                    parser.Dispose();
+                }
+            }
+            catch (Exception ex)
+            {
+                WriteError(new ErrorRecord(
+                    ex,
+                    "CallSiteExtractFailed",
+                    ErrorCategory.InvalidOperation,
+                    Code ?? FilePath));
             }
         }
     }

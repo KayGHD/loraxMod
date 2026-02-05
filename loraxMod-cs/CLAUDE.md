@@ -1,19 +1,86 @@
 # loraxMod-cs - C#/.NET Binding
 
-## Status: COMPLETE ✓
+## Status: ACTIVE DEVELOPMENT
 
-C#/.NET binding with PowerShell cmdlet interface. Native TreeSitter.DotNet parsers, schema-driven extraction, comprehensive test suite.
+C#/.NET binding with PowerShell cmdlet interface. Native TreeSitter.DotNet parsers, schema-driven extraction, dead code detection, comprehensive test suite.
 
-**Completion Date:** December 2025
-**Version:** 1.0.1 (DLL loading fix + C# language support)
+**Latest Version:** 1.0.8 (Dead code detection)
+**Release Date:** February 2026
 
 ## Implementation Summary
 
 **Runtime:** TreeSitter.DotNet 1.1.1 (native C# bindings)
 **Languages:** 28 languages with pre-built parsers
-**PowerShell Cmdlets:** 10 cmdlets (3 tiers)
-**Tests:** 39 tests (29 unit tests passing, 10 integration tests)
-**Lines of Code:** ~2,400 lines (core + cmdlets + tests)
+**PowerShell Cmdlets:** 12 cmdlets (5 tiers)
+**Tests:** 46 tests (46 unit tests passing, 2 integration tests)
+**Lines of Code:** ~3,100 lines (core + cmdlets + tests)
+
+## v1.0.8 - Dead Code Detection (February 2026)
+
+**New Features:**
+- Find-LoraxCallSite: Extract all function/method calls from source files
+- Find-DeadCode: Detect unused functions by comparing definitions to call sites
+- ParentNodeType tracking in ExtractedNode for decorator detection
+- False positive filtering (decorated functions, entry points, framework hooks)
+
+**New Files:**
+- DeadCodeAnalysis.cs (470 lines): UnusedDefinition, CallGraphBuilder, FalsePositiveFilter
+- Cmdlets/DeadCodeCmdlets.cs (280 lines): Find-DeadCode cmdlet
+- Cmdlets/AnalysisCmdlets.cs modified: Added Find-LoraxCallSite cmdlet
+- tests/DeadCodeTests.cs (495 lines): 20 unit tests
+
+**Language Support:**
+11 languages for dead code detection: Python, JavaScript, TypeScript, C#, Java, Go, Rust, C, C++, Ruby, PHP
+
+**False Positive Filters:**
+- Decorated functions: @app.route, @pytest.fixture, [Test], [HttpGet]
+- Entry points: main, Main, __main__, __init__, test_*, Test*
+- Framework hooks: __str__, __repr__, Dispose, ToString, constructor, render
+
+**Example Usage:**
+```powershell
+# Find dead code in Python project
+Find-DeadCode -Path "src/**/*.py" -Recurse
+
+# Find call sites in JavaScript
+Find-LoraxCallSite -FilePath app.js -Language javascript
+
+# Disable false positive filtering
+Find-DeadCode -Path "*.js" -ExcludeDecorated:$false
+```
+
+**CRITICAL PITFALL - Assembly Load Caching:**
+
+When testing DLL changes, `Assembly.LoadFrom($path)` caches assemblies by path. Reloading the same path returns the cached assembly, NOT the updated file.
+
+**Problem:**
+```powershell
+# Build new DLL
+dotnet build
+
+# Check cmdlets - WRONG, returns cached assembly
+$assembly = [Assembly]::LoadFrom("bin/Release/net8.0/LoraxMod.dll")
+$assembly.GetTypes()  # Shows OLD cmdlets
+```
+
+**Solution:**
+```powershell
+# Load via byte array to bypass cache
+$bytes = [IO.File]::ReadAllBytes("bin/Release/net8.0/LoraxMod.dll")
+$assembly = [Assembly]::Load($bytes)  # Fresh load
+$assembly.GetTypes()  # Shows NEW cmdlets
+```
+
+**Deployment Process:**
+1. `dotnet build -c Release` (builds to loraxMod-cs/bin/Release/net8.0/)
+2. Kill PowerShellMcpServer processes (releases file locks)
+3. Copy DLL to powershellMod/bin/LoraxMod.dll
+4. Restart PowerShell or `/mcp` to reload module
+
+**Why This Matters:**
+- .NET assembly cache persists across LoadFrom calls in same process
+- File locks prevent overwriting DLL while PowerShell has it loaded
+- MSBuild incremental compilation can skip unchanged files (use `touch` or delete obj/ to force recompile)
 
 ## v1.0.1 Fixes (December 2025)
 
@@ -102,6 +169,10 @@ C#/.NET binding with PowerShell cmdlet interface. Native TreeSitter.DotNet parse
 - `Get-LoraxDependency` - Import/include extraction
 - `Get-LoraxDiff` - Semantic diff wrapper
 
+**Tier 5: Dead Code Detection (v1.0.8)**
+- `Find-LoraxCallSite` - Extract function/method calls from source files
+- `Find-DeadCode` - Detect unused functions via definition/call site analysis
+
 **Aliases (backward compatibility):**
 - `Find-FunctionCalls` → Find-LoraxFunction
 - `Get-IncludeDependencies` → Get-LoraxDependency
@@ -137,7 +208,7 @@ powershellMod/
 **Loading:**
 ```powershell
 Import-Module C:\path\to\powershellMod\LoraxMod.psd1
-Get-Command -Module LoraxMod  # Lists 10 cmdlets + 2 aliases
+Get-Command -Module LoraxMod  # Lists 12 cmdlets + 2 aliases
 ```
 
 ## Example Usage
@@ -215,6 +286,7 @@ parser.Dispose();
 - **SchemaTests.cs** (18 tests) - Schema loading, node queries, intent resolution
 - **ExtractorTests.cs** (11 tests) - 5 unit + 4 integration (extraction operations)
 - **DifferTests.cs** (10 tests) - 6 unit + 4 integration (diff operations)
+- **DeadCodeTests.cs** (20 tests) - UnusedDefinition, CallGraphBuilder, FalsePositiveFilter, ParentNodeType
 
 **Test Fixtures:**
 - SchemaFixture - Lazy schema loading (JS, Python, Rust)
@@ -224,10 +296,10 @@ parser.Dispose();
 
 **Results:**
 ```
-Total: 39 tests
-Unit Tests: 29/29 passed (100%)
-Integration Tests: 10 (skipped if parser unavailable)
-Duration: 33 ms
+Total: 46 tests (v1.0.8)
+Unit Tests: 46/46 passed (100%)
+Integration Tests: 2 (dead code detection with real parsers)
+Duration: ~800ms
 ```
 
 **Run Tests:**
