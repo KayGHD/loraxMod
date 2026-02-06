@@ -57,18 +57,19 @@
   <Target Name="CopyToPowerShellModule" AfterTargets="Build">
     <PropertyGroup>
       <PowerShellModulePath>..\powershellMod\bin</PowerShellModulePath>
-      <UserModulePath>$(USERPROFILE)\OneDrive\Documents\PowerShell\Modules\LoraxMod\bin</UserModulePath>
+      <UserModulePath Condition="'$(USERPROFILE)' != ''">$(USERPROFILE)\OneDrive\Documents\PowerShell\Modules\LoraxMod\bin</UserModulePath>
     </PropertyGroup>
     <!-- Copy to local powershellMod (for MCP PWSH_MCP_MODULES) -->
     <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll"
           DestinationFolder="$(PowerShellModulePath)"
           SkipUnchangedFiles="true" />
     <Message Text="Copied $(AssemblyName).dll to $(PowerShellModulePath)" Importance="high" />
-    <!-- Copy to user module path (for command-line pwsh) -->
+    <!-- Copy to user module path (for command-line pwsh) - only if path exists -->
     <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll"
           DestinationFolder="$(UserModulePath)"
-          SkipUnchangedFiles="true" />
-    <Message Text="Copied $(AssemblyName).dll to $(UserModulePath)" Importance="high" />
+          SkipUnchangedFiles="true"
+          Condition="Exists('$(UserModulePath)')" />
+    <Message Text="Copied $(AssemblyName).dll to $(UserModulePath)" Importance="high" Condition="Exists('$(UserModulePath)')" />
   </Target>
 
 </Project>
